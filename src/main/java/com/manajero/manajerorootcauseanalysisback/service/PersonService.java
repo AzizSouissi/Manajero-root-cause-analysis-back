@@ -12,7 +12,7 @@ public interface PersonService {
 
     Person save(Person p);
 
-    Person update(Person p);
+    Person update(String id, Person p);
 
     void delete(String id);
 }

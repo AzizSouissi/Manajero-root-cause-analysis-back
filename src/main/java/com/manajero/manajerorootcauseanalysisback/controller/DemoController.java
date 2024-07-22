@@ -1,6 +1,7 @@
 package com.manajero.manajerorootcauseanalysisback.controller;
 
 import com.manajero.manajerorootcauseanalysisback.model.Demo;
+import com.manajero.manajerorootcauseanalysisback.model.Person;
 import com.manajero.manajerorootcauseanalysisback.service.DemoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -30,9 +31,9 @@ public class DemoController {
     }
 
 
-    @PutMapping
-    public ResponseEntity<?> update(@RequestBody Demo demo) {
-        Demo updatedDemo = demoService.update(demo);
+    @PutMapping("/{id}")
+    public ResponseEntity<Demo> update(@PathVariable String id, @RequestBody Demo demo) {
+        Demo updatedDemo = demoService.update(id, demo);
         return ResponseEntity.ok().body(updatedDemo);
     }
 }

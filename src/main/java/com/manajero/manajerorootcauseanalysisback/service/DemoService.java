@@ -9,7 +9,7 @@ public interface DemoService {
 
     Demo find();
 
-    Demo update(Demo demo);
+    Demo update(String id, Demo demo);
 
     Demo save(Demo demo);
 }
