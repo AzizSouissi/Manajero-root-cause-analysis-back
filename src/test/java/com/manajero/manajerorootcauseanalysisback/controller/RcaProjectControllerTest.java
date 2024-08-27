@@ -2,30 +2,29 @@ package com.manajero.manajerorootcauseanalysisback.controller;
 
 import com.manajero.manajerorootcauseanalysisback.model.RcaProject;
 import com.manajero.manajerorootcauseanalysisback.service.RcaProjectService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(RcaProjectController.class)
-public class RcaProjectControllerTest {
+class RcaProjectControllerTest {
 
-    @Autowired
     private MockMvc mockMvc;
 
     @Mock
@@ -35,91 +34,102 @@ public class RcaProjectControllerTest {
     private RcaProjectController rcaProjectController;
 
     @BeforeEach
-    public void setup() {
+    void setUp() {
         MockitoAnnotations.openMocks(this);
         mockMvc = MockMvcBuilders.standaloneSetup(rcaProjectController).build();
     }
 
     @Test
-    public void testFindAll() throws Exception {
-        RcaProject project = RcaProject.builder()
+    void testFindAll() throws Exception {
+        RcaProject project1 = RcaProject.builder()
                 .id("1")
-                .name("Project Alpha")
-                .description("Root Cause Analysis for Project Alpha")
-                .startDate(LocalDate.of(2024, 8, 1))
-                .endDate(LocalDate.of(2024, 12, 31))
-                .status("In Progress")
+                .name("Project 1")
                 .build();
 
-        when(rcaProjectService.findAll());
+        RcaProject project2 = RcaProject.builder()
+                .id("2")
+                .name("Project 2")
+                .build();
 
-        mockMvc.perform(get("/rca-project")
-                        .contentType(MediaType.APPLICATION_JSON))
+        List<RcaProject> projects = Arrays.asList(project1, project2);
+
+        when(rcaProjectService.findAll()).thenReturn((List) projects);
+
+        mockMvc.perform(get("/rca-project"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value("1"))
-                .andExpect(jsonPath("$[0].name").value("Project Alpha"))
-                .andExpect(jsonPath("$[0].description").value("Root Cause Analysis for Project Alpha"))
-                .andExpect(jsonPath("$[0].status").value("In Progress"));
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[0].name").value("Project 1"))
+                .andExpect(jsonPath("$[1].name").value("Project 2"));
+
+        verify(rcaProjectService, times(1)).findAll();
     }
 
     @Test
-    public void testFindById() throws Exception {
+    void testFindById() throws Exception {
         RcaProject project = RcaProject.builder()
                 .id("1")
-                .name("Project Alpha")
-                .description("Root Cause Analysis for Project Alpha")
+                .name("Project 1")
+                .description("Test description")
                 .build();
 
         when(rcaProjectService.findById("1")).thenReturn(project);
 
-        mockMvc.perform(get("/rca-project/1")
-                        .contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/rca-project/1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value("1"))
-                .andExpect(jsonPath("$.name").value("Project Alpha"))
-                .andExpect(jsonPath("$.description").value("Root Cause Analysis for Project Alpha"));
+                .andExpect(jsonPath("$.name").value("Project 1"))
+                .andExpect(jsonPath("$.description").value("Test description"));
+
+        verify(rcaProjectService, times(1)).findById("1");
     }
 
     @Test
-    public void testSave() throws Exception {
+    void testSave() throws Exception {
         RcaProject project = RcaProject.builder()
-                .id("1")
-                .name("Project Alpha")
-                .description("Root Cause Analysis for Project Alpha")
+                .name("New Project")
+                .description("New description")
+                .startDate(LocalDate.of(2024, 8, 26))
                 .build();
 
-        when(rcaProjectService.save(any(RcaProject.class))).thenReturn(project);
+        RcaProject savedProject = RcaProject.builder()
+                .id("1")
+                .name("New Project")
+                .description("New description")
+                .startDate(LocalDate.of(2024, 8, 26))
+                .build();
+
+        when(rcaProjectService.save(any(RcaProject.class))).thenReturn(savedProject);
 
         mockMvc.perform(post("/rca-project")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(new ObjectMapper().writeValueAsString(project)))
+                        .content("{\"name\": \"New Project\", \"description\": \"New description\", \"startDate\": \"2024-08-26\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value("1"))
-                .andExpect(jsonPath("$.name").value("Project Alpha"))
-                .andExpect(jsonPath("$.description").value("Root Cause Analysis for Project Alpha"));
+                .andExpect(jsonPath("$.name").value("New Project"))
+                .andExpect(jsonPath("$.description").value("New description"));
+
+        verify(rcaProjectService, times(1)).save(any(RcaProject.class));
     }
 
     @Test
-    public void testUpdate() throws Exception {
-        RcaProject project = RcaProject.builder()
+    void testUpdate() throws Exception {
+        RcaProject updatedProject = RcaProject.builder()
                 .id("1")
-                .name("Project Alpha Updated")
-                .description("Updated Root Cause Analysis for Project Alpha")
+                .name("Updated Project")
                 .build();
 
-        when(rcaProjectService.update(eq("1"), any(RcaProject.class))).thenReturn(project);
+        when(rcaProjectService.update(eq("1"), any(RcaProject.class))).thenReturn(updatedProject);
 
         mockMvc.perform(put("/rca-project/1")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(new ObjectMapper().writeValueAsString(project)))
+                        .content("{\"name\": \"Updated Project\"}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value("1"))
-                .andExpect(jsonPath("$.name").value("Project Alpha Updated"))
-                .andExpect(jsonPath("$.description").value("Updated Root Cause Analysis for Project Alpha"));
+                .andExpect(jsonPath("$.name").value("Updated Project"));
+
+        verify(rcaProjectService, times(1)).update(eq("1"), any(RcaProject.class));
     }
 
     @Test
-    public void testDelete() throws Exception {
+    void testDelete() throws Exception {
         doNothing().when(rcaProjectService).delete("1");
 
         mockMvc.perform(delete("/rca-project/1"))

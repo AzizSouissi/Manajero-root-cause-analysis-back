@@ -15,6 +15,6 @@ import java.io.Serializable;
 public class Person implements Serializable {
     @Id
     private String id;
-    private String name;
-    private int age;
+    private String email;
+    private String pass;
 }

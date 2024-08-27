@@ -33,8 +33,8 @@ public class PersonServiceImp implements PersonService {
         Optional<Person> existingPersonOptional = repository.findById(id);
         if (existingPersonOptional.isPresent()) {
             Person existingPerson = existingPersonOptional.get();
-            if (person.getName() != null) existingPerson.setName(person.getName());
-            if (person.getAge() != 0) existingPerson.setAge(person.getAge());
+            if (person.getEmail() != null) existingPerson.setEmail(person.getEmail());
+            if (person.getPass() != null) existingPerson.setPass(person.getPass());
             return repository.save(existingPerson);
         } else {
             throw new RuntimeException("Person not found with id: " + id);
